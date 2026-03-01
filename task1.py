@@ -1,7 +1,8 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 GRID_SIZE = 5
-GAMMA = 0.95
+GAMMA = 0.3
 THETA = 1e-6  
 
 lake = (0, 0)
@@ -17,8 +18,7 @@ for x in range(GRID_SIZE):
         for water in [0, 1]:
             states.append((x, y, water))
 
-# Value function initialized to 0
-V = {s: 0.0 for s in states}
+V = {s: 0.0 for s in states}                # Value function initialized to 0
 
 def is_terminal(state):
     x, y, water = state
@@ -108,6 +108,7 @@ def compute_reward(state, next_state):
 
 def value_iteration():
     iteration=0
+    history = {}
     while True:
         delta = 0
         new_V = V.copy()
@@ -129,12 +130,15 @@ def value_iteration():
             delta = max(delta, abs(V[s] - best_value))
 
         V.update(new_V)
+        if iteration in [1, 2]:
+            history[iteration] = V.copy()
         print(f"Iteration {iteration}, delta = {delta:.6f}")
         if delta < THETA:
+            history["final"] = V.copy()
             break
 
     print("Value iteration converged.", iteration)
-    return V
+    return history
 
 def extract_policy():
     policy = {}
@@ -156,79 +160,71 @@ def extract_policy():
         policy[s] = best_action
     return policy
 
-V = value_iteration()
-policy = extract_policy()
-
-print("Optimal value at start (0,0,0):", V[(0, 0, 0)])
-
-import matplotlib.pyplot as plt
-import numpy as np
-
-# Convert value dictionary into 5x5 grid for given water phase
-def get_value_grid(water):
+def get_value_grid(V_dict, water):
     grid = np.zeros((GRID_SIZE, GRID_SIZE))
     for x in range(GRID_SIZE):
         for y in range(GRID_SIZE):
-            grid[y, x] = V[(x, y, water)]
+            grid[y, x] = V_dict[(x, y, water)]
     return grid
 
+def plot_all_snapshots(history):
 
-# Convert policy dictionary into arrow symbols
-def get_policy_grid(water):
-    grid = np.empty((GRID_SIZE, GRID_SIZE), dtype=object)
+    fig, axes = plt.subplots(2, 3, figsize=(18, 10))
 
-    for x in range(GRID_SIZE):
-        for y in range(GRID_SIZE):
-            s = (x, y, water)
+    titles = [
+        "Iter 1 - No Water",
+        "Iter 2 - No Water",
+        "Final - No Water",
+        "Iter 1 - Has Water",
+        "Iter 2 - Has Water",
+        "Final - Has Water",
+    ]
 
-            if (x, y) in boulders:
-                grid[x, y] = "B"
-            elif (x, y) == lake:
-                grid[x, y] = "L"
-            elif (x, y) == fire:
-                grid[x, y] = "F"
-            elif s in policy and policy[s] is not None:
-                action = policy[s]
-                arrows = {
-                    "N": "↑",
-                    "S": "↓",
-                    "E": "→",
-                    "W": "←",
-                    "H": "•"
-                }
-                grid[y, x] = arrows[action]
-            else:
-                grid[x, y] = ""
+    snapshots = [
+        history[1], history[2], history["final"],
+        history[1], history[2], history["final"]
+    ]
 
-    return grid
+    waters = [0, 0, 0, 1, 1, 1]
 
+    arrow_symbol = {
+        "N": "↑",
+        "S": "↓",
+        "E": "→",
+        "W": "←",
+        "H": "•"
+    }
 
-def plot_phase(water, title):
-    values = get_value_grid(water)
-    policy_grid = get_policy_grid(water)
+    global V
 
-    fig, ax = plt.subplots(figsize=(6, 6))
+    for ax, title, V_dict, water in zip(axes.flatten(), titles, snapshots, waters):
 
-    im = ax.imshow(values, cmap="coolwarm", origin="lower")
+        V = V_dict
+        policy = extract_policy()
 
-    # Add numbers and arrows
-    for i in range(GRID_SIZE):
-        for j in range(GRID_SIZE):
-            text = f"{values[i,j]:.1f}\n{policy_grid[i,j]}"
-            ax.text(j, i, text,
-                    ha="center", va="center",
-                    color="black", fontsize=10)
+        values = get_value_grid(V_dict, water)
+        ax.imshow(values, cmap="coolwarm", origin="lower")
 
-    ax.set_xticks(np.arange(GRID_SIZE))
-    ax.set_yticks(np.arange(GRID_SIZE))
-    ax.set_title(title)
-    plt.colorbar(im)
+        for x in range(GRID_SIZE):
+            for y in range(GRID_SIZE):
+                s = (x, y, water)
+                value_text = f"{values[y, x]:.1f}"
+                if policy[s] is None:
+                    arrow_text = ""
+                else:
+                    arrow_text = arrow_symbol[policy[s]]
+
+                ax.text(x, y,f"{value_text}\n{arrow_text}",ha="center",va="center",fontsize=9)
+
+        ax.set_title(title)
+        ax.set_xticks(range(GRID_SIZE))
+        ax.set_yticks(range(GRID_SIZE))
+
+    plt.tight_layout()
     plt.show()
 
+if __name__ == "__main__":
+    history = value_iteration()
+    plot_all_snapshots(history)
 
-# ==========================
-# Plot both phases
-# ==========================
 
-plot_phase(water=0, title="Phase 1: No Water (Navigate to Lake)")
-plot_phase(water=1, title="Phase 2: Has Water (Navigate to Fire)")
