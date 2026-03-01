@@ -103,7 +103,7 @@ def compute_reward(state, next_state):
         return 100
     reward = -1
     if (x, y) in smoke_cells:
-        reward -= 90
+        reward -= 10
     return reward
 
 def value_iteration():
