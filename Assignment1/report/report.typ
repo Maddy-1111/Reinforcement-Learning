@@ -12,7 +12,6 @@
 #line(length: 100%)
 
 = Team Details
-#v(1em)
 #align(center)[
   #grid(
     columns: (1fr, 1fr, 1fr),
@@ -259,7 +258,7 @@ To compare the learning curves more clearly, we run the resultant Q Table for ea
 
 #figure(image("eta_sweep_comp.png", width: 90%), caption: "Modified Reward Function Effect on SARSA Evaluation Returns")
 
-Though the return values differ significantly, we can see that the $eta = 1$ case achieves the best evaluation returns, while $eta = 0.5$ performs the worst, which is consistent with our theoretical analysis. (The $eta = 0.5$ shows an interst drop but that is just due to the fact that the agent is learning to stay at a certain height which gives a small positive reward but doesn't actually complete the task, so the evaluation returns are low.)
+Surprisingly, the return values differ significantly, we can see that the $eta = 1$ case achieves the best evaluation returns, while $eta = 5$ performs the worst
 
 == BONUS\#2: Visualisation
 === "Lil' Fun" Section
@@ -270,7 +269,7 @@ At the end of our notebook, we added a fun section where we visualise the learne
 === Keyboard Control Interface
 We implemented a simple keyboard control interface for the Acrobot environment using the `keyboard_acrobot.py` file. This allows us to manually control the two joints of the Acrobot using arrow keys and observe the resulting motion in the environment.
 - The left and right arrow keys control the first joint, while the up and down arrow keys control the second joint.
-- This manual control helped us gain a better intuitive understanding of the dynamics of the Acrobot and the challenges involved in learning to swing up and balance it.
-- We also used this interface to verify the visualizations of the learned policies in the notebook, by manually trying to replicate the actions suggested by the policy and observing the resulting state transitions.
+- This manual control helped us gain a better intuitive understanding of the dynamics of the Acrobot and the challenges involved in learning to swing up.
+
 
 #figure(image("keyboard_visual.png", width: 60%), caption: "Keyboard Control Interface for Acrobot")
