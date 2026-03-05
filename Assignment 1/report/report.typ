@@ -1,6 +1,7 @@
 #set page(paper: "a4", margin: (x: 2cm, y: 2.5cm))
 #set text(font: "New Computer Modern", size: 11pt) // Standard LaTeX look
 #set heading(numbering: "1.1")
+#set page(numbering: "1")
 
 #show figure.caption: it => [
   #text(size: 0.8em)[#it]
@@ -23,6 +24,11 @@
 
 == Work Split
 The work split was even across both tasks, with each team member contributing to both the MDP formulation and the TD-based control implementation. To minimize code conflicts, we did all the work while sitting together ideating and coding. Naturally we did some small splits over the cells in the notebook, but since it was all to a specific task so it was easy to merge and review each other's code. Hence, we don't have a specific breakdown of who did what, but we all contributed to the entire codebase and report writing collaboratively.
+
+== Links
+Drive: sdfngkljsbkhg
+
+GitHub: ndsbfgkfjg
 
 = Gridworld and Value Iteration
 
@@ -69,14 +75,14 @@ Rewards include the $-1$ per-step penalty, $-10$ for hazardous smoke, and $0$ te
 - Bottom 3 grids are in the state with water towards the fire zone.
 - As represented by the heat gradient, the state value function is stronger near the terminal state.
 - The arrows represent the optimal policy (greedy with respect to the V - one step lookahead)
-#figure(image("Optimal_MDP.png", width: 90%,), caption: [$gamma$ = 0.95 Optimal Value Function and Policy])
+#figure(image("Optimal_MDP.png", width: 100%,), caption: [$gamma$ = 0.95 Optimal Value Function and Policy])
 == Impact of Discount Factor ($gamma = 0.3$)
 a) *Value Function & Policy:* 
 - Convergence is much faster (approx. 15 iterations) but the agent becomes extremely short-sighted. 
 - For states far from terminal reward, the +100 at the fire is heavily discounted and only immediate step costs matter. So the agent keeps receiving −1 indefinitely, the value function becomes: -1/(1-$gamma$)=-1.43 (for all states except a few clsoe to the terminal state)
 - Far from the fire, the policy is less strongly oriented and the gradient toward the goal becomes flatter. We see only 3-4 states near the fire state with a strong value.
 
-#figure(image("MDP_0.3gamma.png", width: 90%,), caption: [$gamma$ = 0.3 Optimal Value Function and Policy])
+#figure(image("MDP_0.3gamma.png", width: 100%,), caption: [$gamma$ = 0.3 Optimal Value Function and Policy])
 
 b) *Hazardous States:* 
 - Since $gamma$ is low, the immediate $-10$ penalty of smoke outweighs the future $+100$ goal reward. The drone exhibits "avoidance" behavior even when the goal is near and takes longer routes.
@@ -97,7 +103,7 @@ a) *Hazardous Avoidance:*
 - The optimal policy remains globally goal-directed but deviates strongly near hazardous regions, preferring longer and safer paths instead of the shortest route. 
 - In tight regions between smoke and boulders, hovering may become optimal.
 - Similar to $gamma$ = 0.3 case, some loops and out of the grid arrows are observed in the policy.
-#figure(image("MDP_90penalty.png", width: 90%,), caption: [$gamma$ = 0.95, Penalty = -90])
+#figure(image("MDP_90penalty.png", width: 100%,), caption: [$gamma$ = 0.95, Penalty = -90])
 
 b) *Hovering Preference:* 
 - Hovering is preferred in the cell between a boulder and smoke.
@@ -113,7 +119,7 @@ d) *Strong Wind:*
 - The optimal policy becomes highly conservative, with more states choosing to hover or move outward at boundaries to reduce risk. Even near the +100 terminal state, some actions avoid direct movement due to high stochastic risk. 
 - Overall, the policy is dominated by strong hazard avoidance rather than shortest-path goal seeking.
 
-#figure(image("MDP_highdrift.png", width: 90%,), caption: [Strong Wind Effect on Optimal Value Function and Policy])
+#figure(image("MDP_highdrift.png", width: 100%,), caption: [Strong Wind Effect on Optimal Value Function and Policy])
 
 = TD-based Control in Acrobot
 
@@ -259,7 +265,7 @@ Though the return values differ significantly, we can see that the $eta = 1$ cas
 === "Lil' Fun" Section
 At the end of our notebook, we added a fun section where we visualise the learned policies of both SARSA and Q-Learning on the Acrobot environment. We used the `visualize_policy` function to create animations of the Acrobot swinging up and balancing based on the learned Q-values. Running it in the actually cell shows a video of the Acrobot performing the task according to the learned policy. This was a great way to qualitatively assess the behavior of the agent and see how well it has learned to control the Acrobot.
 
-#figure(image("policy_visual.png", width: 40%), caption: "SARSA Learned Policy Visualization")
+#figure(image("policy_visual.png", width: 60%), caption: "SARSA Learned Policy Visualization")
 
 === Keyboard Control Interface
 We implemented a simple keyboard control interface for the Acrobot environment using the `keyboard_acrobot.py` file. This allows us to manually control the two joints of the Acrobot using arrow keys and observe the resulting motion in the environment.
