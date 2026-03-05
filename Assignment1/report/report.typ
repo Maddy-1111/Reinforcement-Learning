@@ -24,9 +24,8 @@
 The work split was even across both tasks, with each team member contributing to both the MDP formulation and the TD-based control implementation. To minimize code conflicts, we did all the work while sitting together ideating and coding. Naturally we did some small splits over the cells in the notebook, but since it was all to a specific task so it was easy to merge and review each other's code. Hence, we don't have a specific breakdown of who did what, but we all contributed to the entire codebase and report writing collaboratively.
 
 == Links
-Drive: sdfngkljsbkhg
-
-GitHub: ndsbfgkfjg
+Drive: https://drive.google.com/drive/folders/1bunarTHPGxYBbY5DGvbSyEJ6lzcUGtAP?usp=sharing
+GitHub: https://github.com/Maddy-1111/Reinforcement-Learning/tree/main
 
 = Gridworld and Value Iteration
 
