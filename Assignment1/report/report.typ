@@ -7,7 +7,7 @@
   #text(size: 0.8em)[#it]
 ]
 
-#text(size: 18pt, weight: "bold")[Programming Assignment 1] \
+#text(size: 18pt, weight: "bold")[Programming Assignment 1 (BONUS q answered)] \
 #text(size: 14pt)[DA6400: Jan-May 2026]
 #line(length: 100%)
 
@@ -18,7 +18,6 @@
     align: center,
     [Kevin Kinsey S \ EP23B027], [Madhav Tadepalli \ EE23B040], [Soumya Lodha \ EE23B140]
   )
-  #v(1em) 
 ]
 
 == Work Split
@@ -244,6 +243,11 @@ Given: $r = frac(eta h, 2) + "sign"(-1 + eta h) (frac(2 - eta h, 2))$
 3. *$eta in {1, 5, 100}$:* Higher $eta$ values make the agent aggressive. However, if $eta$ is too high, the agent might prioritize reaching a "safe" high altitude over actually swinging past the goal line.
 4. *Reward Design Insights:* Dense rewards prevent "vanishing gradients" in RL but must be carefully shaped to ensure the agent doesn't find a "local optima" (e.g., just staying high without finishing).
 
+#line(length: 100%)
+
+*Note:* This concludes the proper part of the assignment. The rest of the sections are to answer the BONUS questions and are not mandatory. Hence, it exceeds the page limit, but we have included it for completeness and to demonstrate our understanding of the concepts.
+#pagebreak()
+
 === BONUS section: Implenentation of Modified Reward
 We implemented the modified reward function in the the provided notebook itself.We've tried for different values of $eta$ and observed the general shape of the learning curves.
 
@@ -256,20 +260,36 @@ Since, the values of $eta$ being different, the scale of returns also differ sig
 
 To compare the learning curves more clearly, we run the resultant Q Table for each $eta$ value under a offline evaluation mode (greedy policy) and observed the returns.
 
-#figure(image("eta_sweep_comp.png", width: 90%), caption: "Modified Reward Function Effect on SARSA Evaluation Returns")
+#align(center)[
+  #table(
+      columns: (auto, auto, auto),
+      inset: 7pt,
+      fill: (x, y) => if y == 0 { luma(230) } else { white },
+      align: center + horizon,
+      [*$eta$*], [*Mean Return*], [*Return Variance*],
+      [0.5], [-348.6580 ], [7159.8590],
+      [1], [-318.4385],[9361.0912],
+      [5], [-250.6370],[6834.4422],
+      [100], [-308.9750],[7815.7484],
+)
+]
 
-Surprisingly, the return values differ significantly, we can see that the $eta = 1$ case achieves the best evaluation returns, while $eta = 5$ performs the worst
+As seen from the table, $eta = 5$ has the best mean return. It seems than $eta = 5$ provides a strong enough reward signal to encourage the agent to learn effectively, while not being so high that it leads to suboptimal behavior of just trying to stay at a high altitude. Hence, it seems like higher $eta$ is beneficial up to a certain point, but excessively high values can lead to unintended consequences in the learning process as observed in the $eta = 100$ case.
 
 == BONUS\#2: Visualisation
 === "Lil' Fun" Section
 At the end of our notebook, we added a fun section where we visualise the learned policies of both SARSA and Q-Learning on the Acrobot environment. We used the `visualize_policy` function to create animations of the Acrobot swinging up and balancing based on the learned Q-values. Running it in the actually cell shows a video of the Acrobot performing the task according to the learned policy. This was a great way to qualitatively assess the behavior of the agent and see how well it has learned to control the Acrobot.
-
-#figure(image("policy_visual.png", width: 60%), caption: "SARSA Learned Policy Visualization")
 
 === Keyboard Control Interface
 We implemented a simple keyboard control interface for the Acrobot environment using the `keyboard_acrobot.py` file. This allows us to manually control the two joints of the Acrobot using arrow keys and observe the resulting motion in the environment.
 - The left and right arrow keys control the first joint, while the up and down arrow keys control the second joint.
 - This manual control helped us gain a better intuitive understanding of the dynamics of the Acrobot and the challenges involved in learning to swing up.
 
-
-#figure(image("keyboard_visual.png", width: 60%), caption: "Keyboard Control Interface for Acrobot")
+#align(center)[
+  #grid(
+    columns: (1fr, 1fr),
+    gutter: 10pt,
+    figure(image("policy_visual.png", width: 100%), caption: "SARSA Learned Policy Visualization"),
+    figure(image("keyboard_visual.png", width: 72%), caption: "Keyboard Control Interface for Acrobot")
+  )
+]
