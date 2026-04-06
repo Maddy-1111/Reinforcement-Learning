@@ -164,7 +164,7 @@ LOG_JSONL = "results.jsonl"
 
 def save_result(seed, rewards):
     record = {
-        "label": "madhav_Q5",
+        "label": "madhav_Q3",
         "seed": seed,
 
         "hyperparams": {
@@ -359,7 +359,7 @@ if __name__ == "__main__":
     print(f"Using {num_workers} workers")
 
     with Pool(num_workers) as p:
-        all_rewards = p.map(train_per_dqn, range(15))
+        all_rewards = p.map(train_dqn, range(8))
 
     total_time = time.time() - start
     print(f"\nALL DONE in {total_time:.2f}s")
