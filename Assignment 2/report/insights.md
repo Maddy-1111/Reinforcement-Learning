@@ -90,3 +90,79 @@ Risk of overfitting to stale replay buffer samples
 Slower adaptation to new policy distribution
 
 Thus, increasing ρ does not improve final policy performance, but generally reduces learning speed. Sample efficiency in terms of environment interactions may improve, but computational cost increases.
+
+iv. 
+Advantageous when:
+-Environment interaction is expensive
+-Simulation is slow or real-world data collection is costly
+-Computation is cheap relative to data
+
+Example: robotics training on real hardware
+Collecting a single trajectory requires physical movement and time. Using larger ρ allows the agent to reuse collected data more extensively and learn with fewer real-world interactions.
+
+Disadvantageous when:
+-Environment interaction is cheap (simulation)
+-Real-time learning is required
+-Compute budget is limited
+-Overfitting to stale data harms adaptation
+
+Example: online recommendation system
+User behavior changes quickly. High ρ causes the model to over-train on old interactions, reducing adaptability to new user preferences.
+
+v. Planning is any computational process that uses a model (transition probabilities and rewards) of the environment to improve policies - you don't need real environment interaction, just use data from some simulations to estimate how the environment would behave.
+
+Here, in the case that replay Factor>1, we get only one new update, but we continue sampling rho(more than 1) times each step - meaning we are reusing older transitions to learn about current environment. 
+thus DQN with ρ > 1 resembles planning because multiple updates are performed using stored transitions without additional environment interaction. Although no explicit model is learned, the replay buffer serves as an implicit sample-based model of the environment. Hence, increasing ρ increases the amount of computation-based policy improvement, similar to planning methods.
+
+b)
+i. The performance distributions for all replay factors appears unimodal,indicating that across seeds the algorithm typically converges to one consistent level of performance rather than distinct good/bad modes.
+
+The distributions are approximately bell-shaped, but not perfectly Gaussian. They show slight skewness, particularly for higher replay factors (ρ = 4 and ρ = 8), which have longer tails toward lower performance values. This suggests that larger replay factors occasionally produce worse runs, increasing variability. In contrast, ρ = 1 is more tightly concentrated, indicating more consistent performance across seeds.
+
+Intuitively, these distributions convey that increasing ρ does not significantly change the typical performance, but it reduces reliability. Lower ρ values produce more stable and predictable learning, whereas higher ρ values occasionally lead to poorer convergence due to heavier reuse of replay data.
+
+ii. 
+-Although the mean performances of all ρ values are similar, the distributions show that ρ = 1 is more tightly concentrated, meaning it is more reliable across seeds. Higher replay factors (especially ρ = 4, 8) have wider spreads, indicating a higher chance of poorer runs even if the average looks similar.
+
+-The left tails for larger ρ values extend further toward lower returns. This suggests that higher replay factors occasionally lead to significantly worse outcomes, which is not obvious from the mean learning curves alone.
+
+-The peaks of all distributions lie close together, showing that increasing ρ does not shift the distribution significantly to better performance. Instead, it mainly increases variance. This suggests additional replay updates do not improve the final solution quality.
+
+-The distribution for ρ = 2 is slightly left-skewed compared to others. This suggests that a small increase in replay updates introduces instability without providing sufficient averaging benefits: with ρ = 1 updates closely track fresh data and remain stable, while larger replay factors (ρ = 4, 8) perform many updates that average out noise; however, ρ = 2 lies in between—introducing bias from replayed data but not enough updates to stabilize learning—leading to a mild degradation in typical performance.
+
+iii.
+1. Safety-critical robotics (e.g. autonomous cars)
+Two algorithms may have similar mean returns, but distributions can show that one occasionally fails catastrophically. A learning curve would hide this, while the distribution reveals rare but dangerous failures, which is crucial for deployment.
+
+2. Sparse-reward environments (e.g., maze navigation)
+Some runs may discover the goal early while others never do. The mean curve averages these together and looks smooth, but the distribution becomes multimodal (success vs failure), revealing that the algorithm is unreliable.
+
+c)
+i. plot
+ii. From the tolerance interval plot, ρ = 1 and ρ = 2 have relatively tighter bands, especially after convergence, indicating more consistent performance across runs. In contrast, ρ = 4 shows the widest tolerance interval during learning, suggesting high variability, while ρ = 8 also remains wider as well. After convergence, all intervals shrink but higher ρ values still show slightly larger spread.
+
+This provides different information from part (a). While the mean curves suggested similar performance across ρ values, tolerance intervals reveal how much individual runs can deviate. Even when means overlap, higher ρ values show larger variability, indicating less consistent behavior.
+iii. 
+ρ = 1 → narrowest tolerance interval → most reliable and stable learning, best worst case guarantee
+ρ = 2 → slightly wider but still stable, tolerable worst-case performance
+ρ = 4 → widest interval → least reliable, large variability, poorest worst case outcomes
+ρ = 8 → moderate variability, less stable than ρ = 1 but better than ρ = 4, still poor worst case outcomes
+
+Thus, smaller replay factors are more robust, while larger ρ values increase risk of poor runs
+iv.
+Confidence intervals (CI):Describe uncertainty in the mean,does not reflect variability of individual runs , a 95% CI means that if we repeat the experiment many times, 95% of the computed intervals would contain the true mean.
+
+Tolerance intervals (TI):A tolerance interval gives a range that contains a specified proportion of individual runs with a certain confidence. For example, an (α = 0.05, β = 0.9) tolerance interval means we are 95% confident that 90% of all runs lie within this interval. It reflects spread and variability of performance, including worst-case behavior.
+
+When useful
+CI → comparing average algorithm performance
+TI → evaluating reliability, variability, deployment safety
+
+When misleading
+CI misleading when variability is large (mean hides failures)
+TI misleading if only mean performance matters
+
+As number of runs → infinity
+Confidence interval → converges to true mean (width → 0)
+Tolerance interval → converges to true performance distribution bounds (non-zero width reflecting intrinsic variability)
+if algorithm is completely deterministic than Tolerance would go to 0.
