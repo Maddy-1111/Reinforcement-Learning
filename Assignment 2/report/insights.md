@@ -62,3 +62,31 @@ Therefore, 2000 timesteps is the most appropriate truncation length for fair eva
 It allows the agent enough time to build momentum while also producing stable learning and consistent final performance.
 
 Q4:
+
+a)
+i. attach the two plots
+
+ii. From the learning curves, all variants (ρ = 1, 2, 4, 8) eventually converge to similar final performance, but their learning speed and stability differ. Lower replay factors (ρ = 1, 2) improve faster initially, while higher replay factors (ρ = 4, 8) learn more slowly and show slightly larger variability early on.
+
+ρ = 1 → fastest learning and best final performance
+ρ = 2 → slightly slower, similar convergence
+ρ = 4 → slower learning, similar final return
+ρ = 8 → slowest learning and slightly worse stability
+
+The final performance comparison plot shows that ρ = 1 achieves the best mean return, followed by ρ = 4, while ρ = 2 and ρ = 8 perform slightly worse. However, the 95% confidence intervals overlap substantially across all ρ values, indicating that the differences in final performance are not statistically significant. Thus, replay factor mainly affects learning dynamics rather than the final achievable policy.
+
+iii. Increasing the replay factor means performing more gradient updates per environment step using the same replay buffer. This has two competing effects:
+
+Positive effect-
+
+Improves data reuse
+Reduces sample complexity
+Can extract more information from each transition
+
+Negative effect-
+
+Updates become less correlated with fresh data
+Risk of overfitting to stale replay buffer samples
+Slower adaptation to new policy distribution
+
+Thus, increasing ρ does not improve final policy performance, but generally reduces learning speed. Sample efficiency in terms of environment interactions may improve, but computational cost increases.
