@@ -101,23 +101,26 @@ class PrioritizedReplayBuffer:
         for idx, error in zip(indices, errors):
             self.priorities[idx] = error + 1e-5  # Add small constant to avoid zero priority
 
+    def __len__(self):
+        return len(self.buffer)
+
 
 # -------- Hyperparams --------
 GAMMA = 0.99
-LEARNING_RATE = 2e-4
+LEARNING_RATE = 5e-4
 BATCH_SIZE = 128
-BUFFER_SIZE = 10000
+BUFFER_SIZE = 20000
 
-EPS_START = 0.75
+EPS_START = 1.0
 EPS_END = 0.05
-EPS_DECAY = 150000
+EPS_DECAY = 100000
 
 TARGET_UPDATE = 2000
 NUM_EPISODES = 1000
 MAX_STEPS = 2000
 
 RHO = 1
-HIDDEN_SIZE = 32
+HIDDEN_SIZE = 64
 
 ALPHA = 0.6  # PER prioritization exponent
 BETA_START = 0.4  # PER importance sampling exponent start
@@ -161,7 +164,7 @@ LOG_JSONL = "results.jsonl"
 
 def save_result(seed, rewards):
     record = {
-        "label": "madhav_Q4_a",
+        "label": "madhav_Q5",
         "seed": seed,
 
         "hyperparams": {
@@ -356,7 +359,7 @@ if __name__ == "__main__":
     print(f"Using {num_workers} workers")
 
     with Pool(num_workers) as p:
-        all_rewards = p.map(train_dqn, range(15))
+        all_rewards = p.map(train_per_dqn, range(15))
 
     total_time = time.time() - start
     print(f"\nALL DONE in {total_time:.2f}s")
