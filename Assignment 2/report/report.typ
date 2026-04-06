@@ -7,7 +7,7 @@
   #text(size: 0.8em)[#it]
 ]
 
-#text(size: 18pt, weight: "bold")[Programming Assignment 1 (BONUS q answered)] \
+#text(size: 18pt, weight: "bold")[Programming Assignment 2] \
 #text(size: 14pt)[DA6400: Jan-May 2026]
 #line(length: 100%)
 
@@ -21,23 +21,34 @@
 ]
 
 == Work Split
-The work split was even across both tasks, with each team member contributing to both the MDP formulation and the TD-based control implementation. To minimize code conflicts, we did all the work while sitting together ideating and coding. Naturally we did some small splits over the cells in the notebook, but since it was all to a specific task so it was easy to merge and review each other's code. Hence, we don't have a specific breakdown of who did what, but we all contributed to the entire codebase and report writing collaboratively.
+The work split was even across all tasks, with each team member running different hyperparameter configurations till we found the optimal configuration. After that, we ran all other questions together parallelly to increase time efficiency.
 
 == Links
 Drive: https://drive.google.com/drive/folders/1bunarTHPGxYBbY5DGvbSyEJ6lzcUGtAP?usp=sharing
 
 GitHub: https://github.com/Maddy-1111/Reinforcement-Learning/tree/main
 
-= Gridworld and Value Iteration
+= Deep Q-Networks on Mountain Car-v0
 
-== MDP Formulation
-We define the drone navigation problem as an MDP tuple $(S, A, P, R, gamma)$:
+== Vanilla DQN Algorithm
+The code for simple vanilla DQN algorithm is attached in the links.\
+We used two hidden layers with 64 neurons each and ReLU activation with ε-greedy exploration (apply ε-decaying
+), fixed replay buffer size, hard target network updates, uniformly random
+sampling for experience replay, and Adam optimizer.\
+We obtained the following optimal hyperparameter configuration-
 
-- *State Space ($S$):* Represented as $(x, y, w)$, where $x, y in {0, 1, 2, 3, 4}$ are grid coordinates and $w in {0, 1}$ indicates water status. Total $|S| = 50$.
-- *Action Space ($A$):* $A = {"North", "South", "East", "West", "Hover"}$. |A| = 5
-- *Terminal States:* - *Crash:* Boulders at {(2,4), (3,4)}.
-    - *Success:* Fire zone at (4,4) if $w=1$.
-- *Discount Factor ($gamma$):* Initially $0.95$.
+- *Gamma:* 0.99
+- *LEARNING_RATE :* 5e-4
+- *BATCH_SIZE:* 128
+- *BUFFER_SIZE:* 20000
+
+EPS_START = 1.0
+EPS_END = 0.05
+EPS_DECAY = 100000  
+
+TARGET_UPDATE = 2000
+NUM_EPISODES = 1000
+MAX_STEPS = 2000
 
 #text(size: 14pt, weight: "bold")[Transition and Reward Matrices]
 
