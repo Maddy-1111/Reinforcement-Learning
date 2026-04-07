@@ -31,24 +31,32 @@ GitHub: https://github.com/Maddy-1111/Reinforcement-Learning/tree/main
 = Deep Q-Networks on Mountain Car-v0
 
 == Vanilla DQN Algorithm
+The implementation follows the standard DQN architecture as specified, utilizing an Adam optimizer and a dual-hidden-layer MLP.\
 The code for simple vanilla DQN algorithm is attached in the links.\
 We used two hidden layers with 64 neurons each and ReLU activation with ε-greedy exploration (apply ε-decaying
 ), fixed replay buffer size, hard target network updates, uniformly random
 sampling for experience replay, and Adam optimizer.\
-We obtained the following optimal hyperparameter configuration:
+The following table summarizes the optimized hyperparameter set used for these runs:
 
-- *Gamma:* 0.99
-- *LEARNING_RATE :* 5e-4
-- *BATCH_SIZE:* 128
-- *BUFFER_SIZE:* 20000
+#align(center)[
+  #table(
+    columns: (1fr, 1fr),
+    inset: 7pt,
+    stroke: 0.5pt + gray,
+    fill: (x, y) => if y == 0 { silver },
+    [*Hyperparameter*], [*Value*],
+    [Learning Rate], [$5 times 10^(-4)$],
+    [Gamma ($gamma$)], [0.99],
+    [Batch Size], [128],
+    [Buffer Size], [20,000],
+    [$epsilon$ Schedule], [1.0 $\to$ 0.05],
+    [$epsilon$ Decay Steps], [100,000],
+    [Target Update ($I$)], [2,000],
+    [Max Steps / Episodes], [2,000 / 1,000],
+  )
+]
 
-- *EPS_START:* 1.0
-- *EPS_END:* 0.05
-- *EPS_DECAY:* 100000
-
-- *TARGET_UPDATE:* 2000
-- *NUM_EPISODES:* 1000
-- *MAX_STEPS:* 2000
+#pagebreak()
 
 == Random Seed Runs of Standard DQN
 We ran the standard DQN algorithm with the above hyperparameters for 15 different random seeds. The return curves for all seeds are shown in the figure below.
