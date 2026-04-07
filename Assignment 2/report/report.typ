@@ -24,7 +24,7 @@
 The work split was even across all tasks, with each team member running different hyperparameter configurations till we found the optimal configuration. After that, we ran all other questions together parallelly to increase time efficiency.
 
 == Links
-Drive: <>
+Drive: https://drive.google.com/file/d/1jZPfdSkq2GvTOKqw4ytaHssCD0fI6A9Q/view?usp=sharing
 
 Video: https://drive.google.com/file/d/1Yz7aYQQbFo0fHScnU9IvOemxA9LcbbeB/view?usp=sharing
 
