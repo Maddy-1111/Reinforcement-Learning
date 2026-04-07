@@ -166,3 +166,31 @@ As number of runs → infinity
 Confidence interval → converges to true mean (width → 0)
 Tolerance interval → converges to true performance distribution bounds (non-zero width reflecting intrinsic variability)
 if algorithm is completely deterministic than Tolerance would go to 0.
+
+d)
+i. From the sensitivity plots, DQN with ρ = 4 is less sensitive to batch size than ρ = 1.
+For ρ = 1,batch size 64 gives the best result, while other batch sizes increase variance. This indicates that ρ = 1 depends strongly on choosing an appropriate batch size.
+
+In contrast, for ρ = 4, performance remains relatively similar across batch sizes (64–512), with smaller differences in mean AUC and reduced variation. This suggests that increasing replay factor makes learning less sensitive to the mini-batch size, since multiple updates per step average gradient noise.
+
+When keeping total samples per step fixed (ρ × batch size constant), it is wiser to use a smaller ρ with a larger batch size. The results show that ρ = 1 with moderate/large batch sizes achieves better mean performance and lower variance than ρ = 4 with smaller batches. Larger batch sizes provide more stable gradient estimates, whereas increasing ρ reuses the same replay data multiple times, which does not improve performance and can introduce bias. Using smaller ρ with a larger batch size is also computationally more efficient.
+
+ii. 
+DQN with ρ = 4 is more sensitive to the target network refresh rate than ρ = 1. For both methods, very frequent updates (small refresh rate: 500–1000) lead to fast and stable learning. However, when the refresh rate becomes too large (4000–8000), performance degrades and variance increases, especially for ρ = 4, indicating strong instability due to stale targets.
+
+When the refresh rate is too low (very frequent updates), learning is stable because the target closely tracks the online network. When the refresh rate is too high (infrequent updates), the target becomes outdated, leading to inaccurate TD targets and unstable learning; this effect is much stronger for ρ = 4 since multiple updates amplify errors from the stale target.
+
+From the plots, ρ > 1 appears more stable than ρ = 1 for frequent updates.
+
+When the target network is updated frequently, the TD targets change quickly and stay close to the current Q-network.
+
+With ρ = 4, the agent performs multiple updates using this fresh and consistent target, so each update reinforces similar gradients. This averages noise and reduces oscillations, leading to smoother learning.
+
+With ρ = 1, only one update is made per step. Since the target changes frequently, each update is based on slightly different targets, causing more fluctuation in Q-values and visible dips in performance.
+
+iii.
+In the robotics setting where collecting trajectories is expensive, increasing ρ is attractive because it allows more learning from limited real-world data. However, the hyperparameter sensitivity results show that higher ρ is also more sensitive to choices such as target update rate and batch size, and can become unstable if these are not tuned carefully. This implies that while larger ρ improves data efficiency, it reduces robustness, making deployment riskier on real hardware where failures are costly.
+
+In contrast, smaller ρ  is more robust across hyperparameters, though it may require more environment interaction. For real-world deployment, this suggests a trade-off: larger ρ is useful when data collection is expensive, but it requires careful tuning and monitoring to avoid instability; smaller ρ is safer and more reliable when robustness is more important than minimizing interactions.
+
+Thus, the key lesson for deployment is that higher replay factors improve sample efficiency but reduce reliability, whereas lower replay factors provide more stable and robust performance, which may be preferable in safety-critical real-world systems.
