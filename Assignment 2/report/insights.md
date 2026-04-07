@@ -194,3 +194,10 @@ In the robotics setting where collecting trajectories is expensive, increasing �
 In contrast, smaller ρ  is more robust across hyperparameters, though it may require more environment interaction. For real-world deployment, this suggests a trade-off: larger ρ is useful when data collection is expensive, but it requires careful tuning and monitoring to avoid instability; smaller ρ is safer and more reliable when robustness is more important than minimizing interactions.
 
 Thus, the key lesson for deployment is that higher replay factors improve sample efficiency but reduce reliability, whereas lower replay factors provide more stable and robust performance, which may be preferable in safety-critical real-world systems.
+
+5.
+Using Prioritized Experience Replay (PER) generally diminishes the benefit of increasing the replay factor ρ. With PER, transitions with high TD-error are sampled more frequently, so each update is already more informative. Increasing ρ then repeatedly samples the same high-priority transitions, reducing diversity and causing overfitting to a small subset of experiences.
+
+From the plot, all replay factors (ρ = 1, 2, 4) achieve similar final performance, and increasing ρ does not improve convergence. In fact, ρ = 1 learns fastest and most smoothly, while ρ = 2 and especially ρ = 4 show larger oscillations and higher variance throughout training. This indicates that with PER, higher replay factors introduce instability rather than improving sample efficiency.
+
+Repeatedly updating on prioritized samples amplifies noise and bias, leading to diminishing or negative returns from increasing ρ. Therefore, PER reduces the advantage of large replay factors, and smaller ρ values become preferable.
