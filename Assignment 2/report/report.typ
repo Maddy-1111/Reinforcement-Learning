@@ -260,3 +260,45 @@ As the number of seeds approaches infinity, the *confidence interval* for the me
 The *tolerance interval* would converge to a range that contains the specified proportion of individual runs. If the underlying distribution of returns is well-behaved (e.g., normal), the tolerance interval would become more precise, but it would still reflect the inherent variability in individual runs. The *width* of the tolerance interval would *stabilize* to reflect the true spread of performance across runs, while the confidence interval would shrink to the true mean.
 
 === Sensitivity Analysis
+==== Batch Size
+#grid(
+  columns: (1fr, 1fr),
+  // gutter: 20px,
+  figure(image("Q4di1.png", width: 77%), caption: "AUC vs Batch Size"),
+  figure(image("Q4di2.png", width: 90%), caption: "Reward v Episodes with different batch sizes")
+)
+
+From the sensitivity plots, DQN with ρ = 4 is less sensitive to batch size than ρ = 1.
+For ρ = 1,batch size 64 gives the best result, while other batch sizes increase variance. This indicates that ρ = 1 depends strongly on choosing an appropriate batch size.
+
+In contrast, for ρ = 4, performance remains relatively similar across batch sizes (64-512), with smaller differences in mean AUC and reduced variation. This suggests that increasing replay factor makes learning less sensitive to the mini-batch size, since multiple updates per step average gradient noise.
+
+When keeping total samples per step fixed (ρ × batch-size constant), it is wiser to use a smaller ρ with a larger batch size. The results show that ρ = 1 with moderate/large batch sizes achieves better mean performance and lower variance than ρ = 4 with smaller batches. Larger batch sizes provide more stable gradient estimates, whereas increasing ρ reuses the same replay data multiple times, which does not improve performance and can introduce bias. Using smaller ρ with a larger batch size is also computationally more efficient.
+
+==== Target Network Refresh Rate
+#grid(
+  columns: (1fr, 1fr),
+  // gutter: 20px,
+  figure(image("Q4dii1.png", width: 77%), caption: "AUC vs Target Network Refresh Rate"),
+  figure(image("Q4dii2.png", width: 90%), caption: "Reward v Episodes with different rates")
+)
+DQN with ρ = 4 is more sensitive to the target network refresh rate than ρ = 1. For both methods, very frequent updates (small refresh rate: 500–1000) lead to fast and stable learning. However, when the refresh rate becomes too large (4000–8000), performance degrades and variance increases, especially for ρ = 4, indicating strong instability due to stale targets.
+
+When the refresh rate is too low (very frequent updates), learning is stable because the target closely tracks the online network. When the refresh rate is too high (infrequent updates), the target becomes outdated, leading to inaccurate TD targets and unstable learning; this effect is much stronger for ρ = 4 since multiple updates amplify errors from the stale target.
+
+From the plots, ρ > 1 appears more stable than ρ = 1 for frequent updates.
+
+When the target network is updated frequently, the TD targets change quickly and stay close to the current Q-network.
+
+With ρ = 4, the agent performs multiple updates using this fresh and consistent target, so each update reinforces similar gradients. This averages noise and reduces oscillations, leading to smoother learning.
+
+With ρ = 1, only one update is made per step. Since the target changes frequently, each update is based on slightly different targets, causing more fluctuation in Q-values and visible dips in performance.
+
+== Bonus Section: PER
+Using Prioritized Experience Replay (PER) generally diminishes the benefit of increasing the replay factor ρ. With PER, transitions with high TD-error are sampled more frequently, so each update is already more informative. Increasing ρ then repeatedly samples the same high-priority transitions, reducing diversity and causing overfitting to a small subset of experiences.
+
+#figure(image("Q5.png", width: 90%), caption: "Reward v Episodes with different replay factors using PER")
+
+From the plot, all replay factors (ρ = 1, 2, 4) achieve similar final performance, and increasing ρ does not improve convergence. In fact, ρ = 1 learns fastest and most smoothly, while ρ = 2 and especially ρ = 4 show larger oscillations and higher variance throughout training. This indicates that with PER, higher replay factors introduce instability rather than improving sample efficiency.
+
+Repeatedly updating on prioritized samples amplifies noise and bias, leading to diminishing or negative returns from increasing ρ. Therefore, PER reduces the advantage of large replay factors, and smaller ρ values become preferable.
