@@ -1,10 +1,9 @@
 # DA6400 PA3 — Soft Actor-Critic
 
 Implementation of SAC (continuous + discrete) and experiments on the three
-environments prescribed in the PDF. The `pytorch_sac/` folder is the reference
-code from [denisyarats/pytorch_sac](https://github.com/denisyarats/pytorch_sac)
-kept **untouched**; the actual working code lives in `sac_core/` plus the
-three per-env folders below.
+environments prescribed in the PDF. The reference code is from 
+[denisyarats/pytorch_sac](https://github.com/denisyarats/pytorch_sac).
+The actual working code lives in `sac_core/` plus the three per-env folders below.
 
 ## Layout
 
@@ -136,28 +135,59 @@ python reacher/eval_final_policy.py --run-dir reacher/runs/sac_Rb_seed1 \\
     --num-episodes 500 --episode-length 5000
 ```
 
-## PEBBLE (§3 bonus) — hooks already in place
+## §3 PEBBLE (bonus) — implemented
 
-No PEBBLE implementation yet, but the shared training loop is structured to
-accept it cleanly later:
+Lives in [`pebble/`](pebble/). Reuses `sac_core/` unchanged.
 
-- `ReplayBuffer.relabel_rewards(reward_fn)` — after each reward-model update,
-  rewrite stored rewards using the learned reward model.
-- `training_loop.train(..., step_callback=fn)` — called every env step; use
-  this to collect trajectories for preference queries and to trigger
-  reward-model updates on a schedule.
-- Same `SACAgent` / `DiscreteSACAgent` classes work as-is; PEBBLE doesn't
-  change the agent, only the reward source.
+Modules:
+- `reward_model.py` — ensemble MLP reward model with Bradley-Terry loss.
+- `preference_buffer.py` — stores (segment0, segment1, label) tuples.
+- `trajectory_buffer.py` — rolling log of recent transitions with ground-truth
+  rewards, used to sample segment pairs for preference queries.
+- `teacher.py` — `OracleTeacher` (compares ground-truth segment returns;
+  supports optional mistake probability).
+- `pebble_trainer.py` — end-to-end loop: unsupervised pre-training with k-NN
+  state-entropy intrinsic reward, preference query sessions, reward-model
+  updates, full replay-buffer relabeling, SAC updates, periodic eval against
+  ground-truth return.
+- `train_pendulum.py` — Bonus Q1, Q2 entry point.
+- `train_reacher.py` — Bonus Q3 entry point (three teachers, one per reward
+  formulation R_a / R_b / R_c).
 
-To add PEBBLE later:
-1. Add `pebble/reward_model.py` (ensemble MLP, Bradley-Terry loss).
-2. Add `pebble/preference_buffer.py` (stores trajectory pairs + labels).
-3. Add `pebble/teacher.py` (simulated teacher: compare ground-truth rewards).
-4. Add `pebble/train.py` that uses `step_callback` to (i) record trajectory
-   segments, (ii) every N steps query the teacher, update the reward model,
-   and call `rb.relabel_rewards(...)` with the ensemble mean.
+Bonus Q1 — PEBBLE on Pendulum:
+```
+for th in 0 -60 90 120 -150; do
+  python pebble/train_pendulum.py --theta $th --feedback-budget 1000 --seed 1
+done
+```
+Compare against `pendulum/train.py --theta ... --alpha-mode auto`
+(ground-truth SAC) using `pendulum/plot.py`.
 
-No changes to `sac_core/` should be needed.
+Bonus Q2 — feedback-budget sweep:
+```
+for fb in 100 500 1000 2000; do
+  python pebble/train_pendulum.py --theta 90 --feedback-budget $fb --seed 1
+done
+```
+
+Bonus Q3 — PEBBLE on Reacher, three teacher variants:
+```
+python pebble/train_reacher.py --teacher a --seed 1
+python pebble/train_reacher.py --teacher b --seed 1
+python pebble/train_reacher.py --teacher c --seed 1
+```
+
+Key PEBBLE hyperparameters (exposed as CLI flags):
+- `--feedback-budget`: total teacher queries allowed over the run.
+- `--feedback-frequency`: env steps between query sessions.
+- `--queries-per-session`: queries drawn each session (until budget is spent).
+- `--segment-length`: timesteps per segment.
+- `--selection uniform|disagreement`: pair selection strategy. Disagreement
+  picks pairs where ensemble members most disagree on P[σ¹≻σ⁰].
+- `--unsup-steps`: env steps of unsupervised pre-training with the k-NN
+  intrinsic reward before any teacher query.
+- `--ensemble-size`, `--reward-epochs`: reward-model hyperparameters.
+- `--teacher-mistake-prob`: optional label noise (0 = oracle).
 
 ## Notes
 
