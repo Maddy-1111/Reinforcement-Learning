@@ -1,0 +1,14 @@
+# Common
+torch>=2.0
+numpy>=1.24
+matplotlib>=3.7
+
+# Pendulum + LunarLander
+gymnasium>=1.0
+box2d-py>=2.3.5   # LunarLander physics
+swig>=4.2.0       # required to build box2d-py on some platforms
+
+# Reacher (DeepMind Control Suite)
+dm_control>=1.0.20
+# Fallback if dm_control install fails:
+# shimmy[dm-control]>=1.3.0
