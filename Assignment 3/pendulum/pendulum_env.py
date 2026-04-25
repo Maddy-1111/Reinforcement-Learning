@@ -83,13 +83,14 @@ class PendulumTargetEnv:
         # 2. Define diff (REQUIRED for the info dict below)
         diff = _wrap_to_pi(theta - self.theta_target)
 
-        # 3. Compute Cosine Reward
-        # We use diff inside cos() to ensure we account for the target angle
-        reward_pos = math.cos(diff) 
-        reward_vel = -0.1 * (th_dot ** 2)
-        
-        # Total reward with scaling
+        cos_err = math.cos(diff)
+        reward_pos = math.pow(cos_err, 3) if cos_err > 0 else cos_err
+
+        # Reduce velocity penalty so it doesn't 'fear' the torque needed to hold 90
+        reward_vel = -0.01 * (th_dot ** 2) 
+
         reward = (reward_pos + reward_vel) * self.reward_scale
+        
 
         self._steps += 1
         timeout = self._steps >= self._max_episode_steps
