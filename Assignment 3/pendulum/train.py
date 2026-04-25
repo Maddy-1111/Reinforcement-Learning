@@ -45,14 +45,14 @@ def build_argparser():
                    help='Fixed alpha when --alpha-mode manual.')
     p.add_argument('--reward-scale', type=float, default=1.0)
 
-    p.add_argument('--num-train-steps', type=int, default=200_000)
-    p.add_argument('--num-seed-steps', type=int, default=10_000)
-    p.add_argument('--replay-buffer-capacity', type=int, default=1_000_000)
+    p.add_argument('--num-train-steps', type=int, default=50_000)
+    p.add_argument('--num-seed-steps', type=int, default=500)
+    p.add_argument('--replay-buffer-capacity', type=int, default=50_000)
     p.add_argument('--max-episode-steps', type=int, default=1000)
     p.add_argument('--eval-frequency', type=int, default=10_000)
     p.add_argument('--num-eval-episodes', type=int, default=20)
 
-    p.add_argument('--batch-size', type=int, default=256)
+    p.add_argument('--batch-size', type=int, default=512)
     p.add_argument('--hidden-dim', type=int, default=256)
     p.add_argument('--hidden-depth', type=int, default=2)
     p.add_argument('--discount', type=float, default=0.99)
