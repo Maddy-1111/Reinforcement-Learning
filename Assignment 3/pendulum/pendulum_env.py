@@ -75,15 +75,19 @@ class PendulumTargetEnv:
         native_action = action * self._native_high  # [-1,1] -> [-2,2]
         obs, _default_r, terminated, truncated, info = self._env.step(native_action)
         obs = np.asarray(obs, dtype=np.float32)
-
-        # Compute modified reward from (cos_theta, sin_theta, theta_dot)
+      
+        # 1. Get current angle
         cos_th, sin_th, th_dot = float(obs[0]), float(obs[1]), float(obs[2])
         theta = math.atan2(sin_th, cos_th)
-        diff = _wrap_to_pi(theta - self.theta_target)
-        reward = -(diff ** 2
-                   + 0.1 * th_dot ** 2)
-                #    + 0.001 * float(native_action[0]) ** 2)
-        reward *= self.reward_scale
+
+        # Max = 1.0 (on target), Min = -1.0 (opposite side)
+        reward_pos = math.cos(theta - self.theta_target) 
+
+        # 3. Damping: Prevent jittering once at the target
+        reward_vel = -0.1 * (th_dot ** 2)
+
+        # 4. Final Reward (keeping your scale multiplier support)
+        reward = (reward_pos + reward_vel) * self.reward_scale
 
         self._steps += 1
         timeout = self._steps >= self._max_episode_steps
