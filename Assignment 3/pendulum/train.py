@@ -96,7 +96,7 @@ def main():
         critic_tau=args.critic_tau, batch_size=args.batch_size,
         learnable_temperature=learnable,
         hidden_dim=args.hidden_dim, hidden_depth=args.hidden_depth,
-        target_entropy=-action_dim,
+        target_entropy=-2,
     )
 
     rb = ReplayBuffer(obs_shape=env.observation_space.shape,
