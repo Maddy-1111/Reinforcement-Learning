@@ -69,35 +69,38 @@ class PendulumTargetEnv:
         obs, _ = self._env.reset()
         self._steps = 0
         return np.asarray(obs, dtype=np.float32)
-
+    
     def step(self, action):
         action = np.clip(np.asarray(action, dtype=np.float32), -1.0, 1.0)
         native_action = action * self._native_high  # [-1,1] -> [-2,2]
         obs, _default_r, terminated, truncated, info = self._env.step(native_action)
         obs = np.asarray(obs, dtype=np.float32)
-      
-        # 1. Get current angle
+
+        # 1. Extract state info
         cos_th, sin_th, th_dot = float(obs[0]), float(obs[1]), float(obs[2])
         theta = math.atan2(sin_th, cos_th)
+        
+        # 2. Define diff (REQUIRED for the info dict below)
+        diff = _wrap_to_pi(theta - self.theta_target)
 
-        # Max = 1.0 (on target), Min = -1.0 (opposite side)
-        reward_pos = math.cos(theta - self.theta_target) 
-
-        # 3. Damping: Prevent jittering once at the target
+        # 3. Compute Cosine Reward
+        # We use diff inside cos() to ensure we account for the target angle
+        reward_pos = math.cos(diff) 
         reward_vel = -0.1 * (th_dot ** 2)
-
-        # 4. Final Reward (keeping your scale multiplier support)
+        
+        # Total reward with scaling
         reward = (reward_pos + reward_vel) * self.reward_scale
 
         self._steps += 1
         timeout = self._steps >= self._max_episode_steps
         done = bool(terminated) or timeout
 
+        # 4. info dict (where your error was happening)
         info = dict(info or {})
         info['timeout'] = bool(timeout)
         info['terminated'] = bool(terminated)
         info['theta'] = theta
-        info['theta_err'] = diff
+        info['theta_err'] = diff  # Now 'diff' is defined!
         return obs, float(reward), done, info
 
     def close(self):
