@@ -81,8 +81,8 @@ class PendulumTargetEnv:
         theta = math.atan2(sin_th, cos_th)
         diff = _wrap_to_pi(theta - self.theta_target)
         reward = -(diff ** 2
-                   + 0.1 * th_dot ** 2
-                   + 0.001 * float(native_action[0]) ** 2)
+                   + 0.1 * th_dot ** 2)
+                #    + 0.001 * float(native_action[0]) ** 2)
         reward *= self.reward_scale
 
         self._steps += 1
