@@ -51,7 +51,7 @@ def agg(paths):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--runs-dir', default='runs')
+    p.add_argument('--runs-dir', default='runs_cosine')
     p.add_argument('--seeds', nargs='+', type=int, default=[1])
     p.add_argument('--out', default='pendulum_curves.png')
 
