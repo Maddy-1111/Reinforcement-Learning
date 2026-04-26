@@ -60,7 +60,7 @@ def build_argparser():
     p.add_argument('--critic-lr', type=float, default=3e-4)
     p.add_argument('--alpha-lr', type=float, default=3e-4)
     p.add_argument('--critic-tau', type=float, default=0.005)
-    p.add_argument('--init-temperature', type=float, default=0.2,
+    p.add_argument('--init-temperature', type=float, default=0.01,
                    help='(auto mode only) initial alpha before learning.')
     return p
 
@@ -96,7 +96,7 @@ def main():
         critic_tau=args.critic_tau, batch_size=args.batch_size,
         learnable_temperature=learnable,
         hidden_dim=args.hidden_dim, hidden_depth=args.hidden_depth,
-        target_entropy=-2,
+        target_entropy=-1,
     )
 
     rb = ReplayBuffer(obs_shape=env.observation_space.shape,
