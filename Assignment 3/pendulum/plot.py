@@ -118,8 +118,8 @@ def main():
     ax.set_xlabel('env steps')
     ax.set_ylabel('mean return (20 eps)')
 
-    ax.set_ylim(-1500, 1000)                      # <-- IMPORTANT
-    ax.set_yticks(np.arange(-1500, 1001, 200))    # tick spacing
+    ax.set_ylim(-2500, 0)                      # <-- IMPORTANT
+    ax.set_yticks(np.arange(-2500, 1, 200))    # tick spacing
 
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=8)

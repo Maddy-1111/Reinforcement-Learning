@@ -80,10 +80,11 @@ class PendulumTargetEnv:
         cos_th, sin_th, th_dot = float(obs[0]), float(obs[1]), float(obs[2])
         theta = math.atan2(sin_th, cos_th)
         diff = _wrap_to_pi(theta - self.theta_target)
-        reward = -(diff ** 2
-                   + 0.1 * th_dot ** 2
-                 + 0.001 * float(native_action[0]) ** 2)
-        reward *= self.reward_scale
+        reward_pos = math.cos(diff) 
+        reward_vel = -0.1 * (th_dot ** 2)
+        
+        # Total reward with scaling
+        reward = (reward_pos + reward_vel) * self.reward_scale
 
         self._steps += 1
         timeout = self._steps >= self._max_episode_steps
