@@ -42,8 +42,8 @@ def build_argparser():
     # Safety cap for Rc eval episodes (which only end on goal).
     p.add_argument('--max-eval-episode-steps', type=int, default=10_000)
 
-    p.add_argument('--batch-size', type=int, default=1024)
-    p.add_argument('--hidden-dim', type=int, default=1024)
+    p.add_argument('--batch-size', type=int, default=256)
+    p.add_argument('--hidden-dim', type=int, default=256)
     p.add_argument('--hidden-depth', type=int, default=2)
     p.add_argument('--discount', type=float, default=0.99)
     p.add_argument('--init-temperature', type=float, default=0.1)
