@@ -118,6 +118,7 @@ class ReacherEnv:
     """
 
     VELOCITY_THRESHOLD = 1e-2  # rad/s, considered "near zero"
+    RC_TIMEOUT_PENALTY = -20.0  # per the assignment's Rc spec
 
     def __init__(self,
                  reward_variant='b',
@@ -168,16 +169,62 @@ class ReacherEnv:
     # -- physics access (works for both backends) -------------------------
 
     def _physics(self):
+        return self._dm_env().physics
+
+    def _dm_env(self):
+        """Return the underlying dm_control Environment (with `.task`/`.physics`)."""
         if self._is_dm:
-            return self._env.physics
-        # shimmy wraps dm_env -> env.unwrapped._env._env is the dm_env
+            return self._env
         inner = self._env.unwrapped
-        # try common attrs
-        for attr in ('_env', 'env'):
-            if hasattr(inner, attr):
-                inner = getattr(inner, attr)
+        for _ in range(5):
+            if hasattr(inner, 'task') and hasattr(inner, 'physics'):
+                return inner
+            for attr in ('_env', 'env'):
+                if hasattr(inner, attr):
+                    inner = getattr(inner, attr)
+                    break
+            else:
                 break
-        return inner.physics
+        return inner
+
+    def _read_target_qpos(self, phys):
+        """Return (tx, ty) target slider positions, robust to naming."""
+        try:
+            return (float(phys.named.data.qpos['target_x']),
+                    float(phys.named.data.qpos['target_y']))
+        except (KeyError, IndexError):
+            qpos = np.asarray(phys.data.qpos)
+            return float(qpos[-2]), float(qpos[-1])
+
+    def _write_target_qpos(self, phys, tx, ty):
+        try:
+            phys.named.data.qpos['target_x'] = tx
+            phys.named.data.qpos['target_y'] = ty
+        except (KeyError, IndexError):
+            phys.data.qpos[-2] = tx
+            phys.data.qpos[-1] = ty
+
+    def _soft_reset_keep_target(self):
+        """Rc-only: re-randomize the arm pose, keep the current target qpos.
+
+        dm_control reacher resets both arm and target on env.reset(). To match
+        the assignment's Rc spec ("on timeout, reset only the arm; the goal
+        stays put"), we capture target qpos before reset and restore it after,
+        then recompute the observation from the edited physics.
+        """
+        dm = self._dm_env()
+        tx, ty = self._read_target_qpos(dm.physics)
+        # Full reset (also randomizes target; we restore it below).
+        if self._is_dm:
+            self._env.reset()
+        else:
+            self._env.reset()
+        dm = self._dm_env()
+        self._write_target_qpos(dm.physics, tx, ty)
+        dm.physics.data.qvel[:] = 0.0
+        dm.physics.forward()
+        obs_dict = dm.task.get_observation(dm.physics)
+        return _flatten_obs(obs_dict)
 
     # -- API --------------------------------------------------------------
 
@@ -224,10 +271,27 @@ class ReacherEnv:
 
         if self.reward_variant == 'c':
             terminated = at_goal_still
+            if timeout and not terminated:
+                # Rc spec: timeout is NOT episode end. Apply -20 reset
+                # penalty, soft-reset arm only (keep target), continue
+                # accumulating into the same episode.
+                reward = float(reward) + self.RC_TIMEOUT_PENALTY
+                next_obs = self._soft_reset_keep_target()
+                self._steps = 0
+                info = {
+                    'dist_to_target': dist,
+                    'in_target': in_target,
+                    'at_goal_still': False,
+                    'timeout': True,
+                    'terminated': False,
+                    'soft_reset': True,
+                }
+                return next_obs, float(reward), False, info
+            done = bool(terminated)
         else:
             terminated = False
+            done = bool(timeout)
 
-        done = bool(terminated or timeout)
         info = {
             'dist_to_target': dist,
             'in_target': in_target,

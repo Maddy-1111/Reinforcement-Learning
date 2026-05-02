@@ -32,13 +32,15 @@ def build_argparser():
     p.add_argument('--backend', default=None)
     p.add_argument('--device', default='cuda')
 
-    p.add_argument('--num-train-steps', type=int, default=1_000_000)
+    p.add_argument('--num-train-steps', type=int, default=500_000)
     p.add_argument('--num-seed-steps', type=int, default=10_000)
     p.add_argument('--replay-buffer-capacity', type=int, default=1_000_000)
     p.add_argument('--max-episode-steps', type=int, default=1000)
     p.add_argument('--eval-frequency', type=int, default=10_000)
     p.add_argument('--num-eval-episodes', type=int, default=20)
     p.add_argument('--checkpoint-frequency', type=int, default=0)
+    # Safety cap for Rc eval episodes (which only end on goal).
+    p.add_argument('--max-eval-episode-steps', type=int, default=10_000)
 
     p.add_argument('--batch-size', type=int, default=1024)
     p.add_argument('--hidden-dim', type=int, default=1024)
@@ -100,6 +102,7 @@ def main():
         checkpoint_frequency=args.checkpoint_frequency,
         log_dir=Path(args.out_dir) / f"sac_R{args.reward}_seed{args.seed}",
         extra_config=vars(args),
+        max_eval_episode_steps=args.max_eval_episode_steps,
     )
 
     train(agent, env, rb, cfg, eval_envs=eval_envs)

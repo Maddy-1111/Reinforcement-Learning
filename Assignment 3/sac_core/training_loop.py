@@ -27,13 +27,14 @@ import numpy as np
 from . import utils
 
 
-def evaluate_policy(agent, env, num_episodes=20):
+def evaluate_policy(agent, env, num_episodes=20, max_steps=None):
     returns = []
     for _ in range(num_episodes):
         obs = env.reset()
         agent.reset()
         done = False
         ep_return = 0.0
+        steps = 0
         while not done:
             # actor-only eval_mode is enough; continuous agent exposes
             # `actor`/`critic`, discrete exposes the same.
@@ -44,15 +45,20 @@ def evaluate_policy(agent, env, num_episodes=20):
                 action = agent.act(obs, sample=False)
             obs, reward, done, _ = env.step(action)
             ep_return += reward
+            steps += 1
+            if max_steps is not None and steps >= max_steps:
+                break
         returns.append(ep_return)
     return float(np.mean(returns)), float(np.std(returns))
 
 
-def evaluate_in_envs(agent, eval_envs: Dict[str, Any], num_episodes=20):
+def evaluate_in_envs(agent, eval_envs: Dict[str, Any], num_episodes=20,
+                     max_steps=None):
     """Evaluate same policy in a dict of {label: env}. Returns dict of stats."""
     out = {}
     for label, env in eval_envs.items():
-        mean, std = evaluate_policy(agent, env, num_episodes=num_episodes)
+        mean, std = evaluate_policy(agent, env, num_episodes=num_episodes,
+                                    max_steps=max_steps)
         out[label] = {'mean': mean, 'std': std}
     return out
 
@@ -67,7 +73,8 @@ class TrainConfig:
                  num_eval_episodes=20,
                  checkpoint_frequency=0,
                  log_dir='runs/tmp',
-                 extra_config=None):
+                 extra_config=None,
+                 max_eval_episode_steps=None):
         self.num_train_steps = int(num_train_steps)
         self.num_seed_steps = int(num_seed_steps)
         self.eval_frequency = int(eval_frequency)
@@ -75,6 +82,8 @@ class TrainConfig:
         self.checkpoint_frequency = int(checkpoint_frequency)
         self.log_dir = Path(log_dir)
         self.extra_config = extra_config or {}
+        self.max_eval_episode_steps = (int(max_eval_episode_steps)
+                                       if max_eval_episode_steps else None)
 
 
 def train(agent,
@@ -160,6 +169,36 @@ def train(agent,
     obs = env.reset()
     agent.reset()
 
+    # Step-0 evaluation: random-init policy baseline so the plot starts at x=0.
+    def _do_eval(at_step: int):
+        stats = evaluate_in_envs(
+            agent, eval_envs,
+            num_episodes=cfg.num_eval_episodes,
+            max_steps=cfg.max_eval_episode_steps)
+        row: Dict[str, Any] = {'step': at_step}
+        for k, v in stats.items():
+            row[f'{k}_mean'] = v['mean']
+            row[f'{k}_std'] = v['std']
+        alpha_attr = getattr(agent, 'alpha', None)
+        row['alpha'] = (float(alpha_attr.item())
+                        if hasattr(alpha_attr, 'item') else float('nan'))
+        row['wall_time'] = time.time() - start_time
+        prog_w.writerow(row)
+        prog_f.flush()
+        if on_eval is not None:
+            on_eval(at_step, stats)
+        if verbose:
+            summary = ' '.join(
+                f"{k}={v['mean']:+.2f}" for k, v in stats.items())
+            print(f"[step {at_step:>8d}] {summary} "
+                  f"alpha={row['alpha']:.3f} "
+                  f"t={row['wall_time']:.0f}s")
+
+    _do_eval(0)
+    # eval-at-reset re-randomized the env; restore a fresh training rollout.
+    obs = env.reset()
+    agent.reset()
+
     try:
         while step < cfg.num_train_steps:
             # reward-schedule: fire hooks that have come due
@@ -205,29 +244,7 @@ def train(agent,
 
             # evaluation
             if step % cfg.eval_frequency == 0:
-                stats = evaluate_in_envs(agent, eval_envs,
-                                         num_episodes=cfg.num_eval_episodes)
-                row: Dict[str, Any] = {'step': step}
-                for k, v in stats.items():
-                    row[f'{k}_mean'] = v['mean']
-                    row[f'{k}_std'] = v['std']
-                row['alpha'] = float(getattr(agent, 'alpha',
-                                             np.nan).item() if hasattr(
-                    getattr(agent, 'alpha', None), 'item') else
-                                     float('nan'))
-                row['wall_time'] = time.time() - start_time
-                prog_w.writerow(row)
-                prog_f.flush()
-
-                if on_eval is not None:
-                    on_eval(step, stats)
-
-                if verbose:
-                    summary = ' '.join(
-                        f"{k}={v['mean']:+.2f}" for k, v in stats.items())
-                    print(f"[step {step:>8d}] {summary} "
-                          f"alpha={row['alpha']:.3f} "
-                          f"t={row['wall_time']:.0f}s")
+                _do_eval(step)
 
             # checkpointing
             if (cfg.checkpoint_frequency > 0
