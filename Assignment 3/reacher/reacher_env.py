@@ -117,7 +117,7 @@ class ReacherEnv:
     and `env._max_episode_steps` (set to 1000).
     """
 
-    VELOCITY_THRESHOLD = 1e-2  # rad/s, considered "near zero"
+    VELOCITY_THRESHOLD = 5e-2  # rad/s, considered "near zero"
     RC_TIMEOUT_PENALTY = -20.0  # per the assignment's Rc spec
 
     def __init__(self,

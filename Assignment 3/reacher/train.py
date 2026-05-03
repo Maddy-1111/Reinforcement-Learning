@@ -39,8 +39,12 @@ def build_argparser():
     p.add_argument('--eval-frequency', type=int, default=10_000)
     p.add_argument('--num-eval-episodes', type=int, default=20)
     p.add_argument('--checkpoint-frequency', type=int, default=0)
-    # Safety cap for Rc eval episodes (which only end on goal).
-    p.add_argument('--max-eval-episode-steps', type=int, default=10_000)
+    # Per-instructor middleground: cap each eval episode at 1000 steps. For Rc
+    # this means a single timeout window; the env applies its -20 reset penalty
+    # on the 1000th step, so eval returns are -k (goal in k<1000) or -1020
+    # (timeout). Training-time Rc semantics (multi-window with penalties) are
+    # unchanged.
+    p.add_argument('--max-eval-episode-steps', type=int, default=1000)
 
     p.add_argument('--batch-size', type=int, default=256)
     p.add_argument('--hidden-dim', type=int, default=256)
