@@ -1,0 +1,105 @@
+
+=== Ra seed3 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Ra_seed3/final_eval.csv
+steps_to_goal:   mean=66.9 (n_reached=50/50)
+steps_in_target: mean=4711.4  std=390.4
+
+=== Ra seed4 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Ra_seed4/final_eval.csv
+steps_to_goal:   mean=64.2 (n_reached=50/50)
+steps_in_target: mean=4430.4  std=658.6
+
+=== Ra seed5 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Ra_seed5/final_eval.csv
+steps_to_goal:   mean=67.4 (n_reached=50/50)
+steps_in_target: mean=4539.2  std=454.3
+
+=== Ra seed6 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Ra_seed6/final_eval.csv
+steps_to_goal:   mean=64.3 (n_reached=50/50)
+steps_in_target: mean=3997.6  std=698.5
+
+=== Ra seed7 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Ra_seed7/final_eval.csv
+steps_to_goal:   mean=21.1 (n_reached=50/50)
+steps_in_target: mean=4743.2  std=383.6
+
+=== Rb seed3 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rb_seed3/final_eval.csv
+steps_to_goal:   mean=44.3 (n_reached=50/50)
+steps_in_target: mean=4330.7  std=704.7
+
+=== Rb seed4 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rb_seed4/final_eval.csv
+steps_to_goal:   mean=18.6 (n_reached=50/50)
+steps_in_target: mean=4838.7  std=227.2
+
+=== Rb seed5 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rb_seed5/final_eval.csv
+steps_to_goal:   mean=20.2 (n_reached=50/50)
+steps_in_target: mean=4640.3  std=469.7
+
+=== Rb seed6 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rb_seed6/final_eval.csv
+steps_to_goal:   mean=41.7 (n_reached=50/50)
+steps_in_target: mean=4738.4  std=404.3
+
+=== Rb seed7 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rb_seed7/final_eval.csv
+steps_to_goal:   mean=85.8 (n_reached=50/50)
+steps_in_target: mean=4536.7  std=577.1
+
+=== Rc seed3 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rc_seed3/final_eval.csv
+steps_to_goal:   mean=1769.4 (n_reached=43/50)
+steps_in_target: mean=100.5  std=153.3
+
+=== Rc seed4 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rc_seed4/final_eval.csv
+steps_to_goal:   mean=1215.2 (n_reached=42/50)
+steps_in_target: mean=154.6  std=198.5
+
+=== Rc seed5 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rc_seed5/final_eval.csv
+steps_to_goal:   mean=1121.0 (n_reached=49/50)
+steps_in_target: mean=130.3  std=122.5
+
+=== Rc seed6 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rc_seed6/final_eval.csv
+steps_to_goal:   mean=220.8 (n_reached=50/50)
+steps_in_target: mean=85.5  std=181.0
+
+=== Rc seed7 ===
+/usr/local/lib/python3.12/dist-packages/glfw/__init__.py:917: GLFWError: (65550) b'X11: The DISPLAY environment variable is missing'
+  warnings.warn(message, GLFWError)
+Wrote reacher/runs/sac_Rc_seed7/final_eval.csv
+steps_to_goal:   mean=1332.1 (n_reached=46/50)
+steps_in_target: mean=156.7  std=173.3
