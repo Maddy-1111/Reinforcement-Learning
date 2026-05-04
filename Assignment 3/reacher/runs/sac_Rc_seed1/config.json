@@ -1,6 +1,6 @@
 {
   "reward": "c",
-  "seed": 1,
+  "seed": 3,
   "out_dir": "/kaggle/working/runs",
   "backend": "dm_control",
   "device": "cuda",
@@ -11,7 +11,7 @@
   "eval_frequency": 10000,
   "num_eval_episodes": 5,
   "checkpoint_frequency": 0,
-  "max_eval_episode_steps": 5000,
+  "max_eval_episode_steps": 1000,
   "batch_size": 256,
   "hidden_dim": 256,
   "hidden_depth": 2,
