@@ -4,17 +4,6 @@ Handles:
     - Q2.1.2  automated alpha, sweep theta_target in {0,-10,30,-60,90,-90,120,-150}
     - Q2.1.5a manual alpha_mnl for {-60, 90, 120, -150}
     - Q2.1.5b manual alpha_mnl vs auto under reward-scale {10x, 0.1x} for theta=90
-
-Usage:
-    # automated alpha (default)
-    python train.py --theta 0 --seed 1
-    python train.py --theta -150 --seed 1
-
-    # manual alpha (learnable_temperature off, init_temperature = alpha_mnl)
-    python train.py --theta 90 --alpha-mode manual --alpha 0.2 --seed 1
-
-    # reward-scale for Q2.1.5b
-    python train.py --theta 90 --alpha-mode manual --alpha 0.2 --reward-scale 10
 """
 from __future__ import annotations
 
