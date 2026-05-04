@@ -1,0 +1,23 @@
+{
+  "reward": "a",
+  "seed": 1,
+  "out_dir": "/kaggle/working/runs",
+  "backend": "dm_control",
+  "device": "cuda",
+  "num_train_steps": 300000,
+  "num_seed_steps": 10000,
+  "replay_buffer_capacity": 1000000,
+  "max_episode_steps": 1000,
+  "eval_frequency": 10000,
+  "num_eval_episodes": 10,
+  "checkpoint_frequency": 0,
+  "batch_size": 1024,
+  "hidden_dim": 1024,
+  "hidden_depth": 2,
+  "discount": 0.99,
+  "init_temperature": 0.1,
+  "actor_lr": 0.0001,
+  "critic_lr": 0.0001,
+  "alpha_lr": 0.0001,
+  "critic_tau": 0.005
+}
