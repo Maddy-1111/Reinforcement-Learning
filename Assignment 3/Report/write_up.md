@@ -91,10 +91,11 @@ Manual α adapts well to both scales because αmnl was already in a robust regim
 
 1. 
 Structure - 
-- Unsupervised pre-training for the first 9 000 env steps: SAC trains on a k-NN state-entropy intrinsic reward (k = 5, rolling buffer of 10 000 states) — no teacher queries.
+- SAC trains on a k-NN state-entropy intrinsic reward (k = 5, rolling buffer of 10 000 states) — no teacher queries.
 - Preference-based training (steps 9 000 → 50 000): every 5 000 env steps a feedback session runs.
 - Reward learning. Each ensemble member is an MLP r_ψ(s, a) (256-hidden × 3-deep, Tanh) trained with the Bradley–Terry preference loss for 50 epochs over the preference buffer at every session.
 - Budget. We used a total feedback budget of 1000 preference queries (≈ 50 sessions × 20 queries). 
+- Following the PEBBLE paper, we used unsup_steps = 9000. On Pendulum's 3-dim state, this is likely longer than necessary; reducing it would shorten PEBBLE's startup lag without changing the asymptotic comparison.
 
 Comparison vs. SAC trained on the ground-truth reward. 
 
