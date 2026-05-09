@@ -52,8 +52,9 @@ def smooth(y, w):
 def find_pebble_run(runs_dir: Path, teacher: str, seed: int):
     """PEBBLE log dir: pebble_reacher_R{teacher}_fb*_*_seed{seed}.
     Pick the first match (typical case: one config per seed)."""
-    matches = sorted(runs_dir.glob(
-        f"pebble_reacher_R{teacher}_fb*_*_seed{seed}"))
+    suffix = f"_seed{seed}"
+    matches = sorted(p for p in runs_dir.glob(f"pebble_reacher_R{teacher}_*")
+                     if p.name.endswith(suffix))
     return matches[0] / "progress.csv" if matches else None
 
 
