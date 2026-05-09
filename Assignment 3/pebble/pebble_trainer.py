@@ -162,6 +162,7 @@ class PebbleConfig:
                  # eval
                  eval_frequency=10_000,
                  num_eval_episodes=20,
+                 max_eval_episode_steps=None,
                  log_dir='runs/pebble',
                  # teacher
                  teacher_tie_threshold=0.0,
@@ -187,6 +188,8 @@ class PebbleConfig:
         self.reward_batch_size = int(reward_batch_size)
         self.eval_frequency = int(eval_frequency)
         self.num_eval_episodes = int(num_eval_episodes)
+        self.max_eval_episode_steps = (int(max_eval_episode_steps)
+                                       if max_eval_episode_steps else None)
         self.log_dir = Path(log_dir)
         self.teacher_tie_threshold = float(teacher_tie_threshold)
         self.teacher_mistake_prob = float(teacher_mistake_prob)
@@ -349,7 +352,8 @@ def train_pebble(agent, env, eval_env, replay_buffer, teacher,
             if step % cfg.eval_frequency == 0:
                 stats = evaluate_in_envs(
                     agent, {'return': eval_env},
-                    num_episodes=cfg.num_eval_episodes)
+                    num_episodes=cfg.num_eval_episodes,
+                    max_steps=cfg.max_eval_episode_steps)
                 row = {
                     'step': step, 'phase': phase,
                     'return_mean': stats['return']['mean'],

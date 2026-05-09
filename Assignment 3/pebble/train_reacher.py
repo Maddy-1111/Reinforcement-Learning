@@ -54,6 +54,9 @@ def build_argparser():
     p.add_argument('--max-episode-steps', type=int, default=1000)
     p.add_argument('--eval-frequency', type=int, default=10_000)
     p.add_argument('--num-eval-episodes', type=int, default=20)
+    p.add_argument('--max-eval-episode-steps', type=int, default=1000,
+                   help='Hard cap on eval episode length (critical for Rc, '
+                        'whose episodes only end on goal-reach).')
 
     p.add_argument('--batch-size', type=int, default=1024)
     p.add_argument('--hidden-dim', type=int, default=1024)
@@ -119,6 +122,7 @@ def main():
         reward_epochs=args.reward_epochs,
         eval_frequency=args.eval_frequency,
         num_eval_episodes=args.num_eval_episodes,
+        max_eval_episode_steps=args.max_eval_episode_steps,
         log_dir=log_dir,
         extra_config=vars(args),
     )
