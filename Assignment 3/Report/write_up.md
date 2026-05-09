@@ -91,10 +91,11 @@ Manual α adapts well to both scales because αmnl was already in a robust regim
 
 1. 
 Structure - 
-- Unsupervised pre-training for the first 9 000 env steps: SAC trains on a k-NN state-entropy intrinsic reward (k = 5, rolling buffer of 10 000 states) — no teacher queries.
+- SAC trains on a k-NN state-entropy intrinsic reward (k = 5, rolling buffer of 10 000 states) — no teacher queries.
 - Preference-based training (steps 9 000 → 50 000): every 5 000 env steps a feedback session runs.
 - Reward learning. Each ensemble member is an MLP r_ψ(s, a) (256-hidden × 3-deep, Tanh) trained with the Bradley–Terry preference loss for 50 epochs over the preference buffer at every session.
 - Budget. We used a total feedback budget of 1000 preference queries (≈ 50 sessions × 20 queries). 
+- Following the PEBBLE paper, we used unsup_steps = 9000. On Pendulum's 3-dim state, this is likely longer than necessary; reducing it would shorten PEBBLE's startup lag without changing the asymptotic comparison.
 
 Comparison vs. SAC trained on the ground-truth reward. 
 
@@ -111,3 +112,16 @@ Final performance: Despite the slower start, PEBBLE matches SAC-GT's final retur
 Conclusion: PEBBLE is less sample-efficient than ground-truth SAC (≈ 10–20 K-step lag, attributable to unsupervised pre-training and the warm-up of the reward model), but recovers comparable final performance across all target angles. This validates preference-based reward learning as a viable substitute when designing or specifying the reward is hard or impossible — at the cost of a modest amount of additional environment interaction.
 
 2. 
+
+We ran PEBBLE on θ ∈ {0, 90} for three preference-query budgets — fb ∈ {500, 1000, 2000} — keeping all other settings identical to Q3.1 
+
+θ = 90. All three budgets converge to the same plateau (~+330) by step 30 K, with nearly identical bands at convergence. The early phase shows that fb = 2000 rises slowest. This is a queries_per_session artefact — we have queries_per_session = 200, which over-trains the reward model on a still-small preference dataset, producing a brief regression. fb = 500 and fb = 1000 (with 50 and 100 queries per session respectively) avoid this and are essentially indistinguishable.
+
+θ = 0. Final returns clearly separate by budget: fb = 2000 reaches ~+680, fb = 1000 ~+610, fb = 500 ~+550. fb = 500 plateaus earliest, while fb = 1000 and fb = 2000 are still climbing at step 50 K. The variance bands overlap, but the means are well-separated.
+
+θ = 0 (upright pendulum) has a peaked high-reward region: cos(θ) is sharply maximised near θ = 0, so distinguishing "almost-upright" from "upright" requires fine-grained preference labels to capture the curvature. θ = 90 sits on a gentler flank of the cos curve — the optimal-policy regime is broader, so a coarse reward model already suffices. With more queries, the reward model captures the sharp peak around θ = 0 more accurately and the policy converges higher.
+
+Budget matters when the reward landscape has sharp structure (θ = 0). With a smoother / more forgiving reward (θ = 90), 500 queries already saturate.
+More total queries ≠ uniformly better learning curve. The fb = 2000 dip on θ = 90 shows that large per-session updates can briefly destabilise reward learning before the dataset is informative. A larger budget is best spent across more sessions, not by enlarging each session.
+
+
