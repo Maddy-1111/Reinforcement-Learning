@@ -169,24 +169,24 @@ def train(agent,
     obs = env.reset()
     agent.reset()
 
-    # Step-0 evaluation: random-init policy baseline so the plot starts at x=0.
-    def _do_eval(at_step: int):
-        stats = evaluate_in_envs(
-            agent, eval_envs,
-            num_episodes=cfg.num_eval_episodes,
-            max_steps=cfg.max_eval_episode_steps)
+    def _log_eval(at_step: int):
+        stats = evaluate_in_envs(agent, eval_envs,
+                                 num_episodes=cfg.num_eval_episodes)
         row: Dict[str, Any] = {'step': at_step}
         for k, v in stats.items():
             row[f'{k}_mean'] = v['mean']
             row[f'{k}_std'] = v['std']
-        alpha_attr = getattr(agent, 'alpha', None)
-        row['alpha'] = (float(alpha_attr.item())
-                        if hasattr(alpha_attr, 'item') else float('nan'))
+        row['alpha'] = float(getattr(agent, 'alpha',
+                                     np.nan).item() if hasattr(
+            getattr(agent, 'alpha', None), 'item') else
+                             float('nan'))
         row['wall_time'] = time.time() - start_time
         prog_w.writerow(row)
         prog_f.flush()
+
         if on_eval is not None:
             on_eval(at_step, stats)
+
         if verbose:
             summary = ' '.join(
                 f"{k}={v['mean']:+.2f}" for k, v in stats.items())
@@ -194,12 +194,11 @@ def train(agent,
                   f"alpha={row['alpha']:.3f} "
                   f"t={row['wall_time']:.0f}s")
 
-    _do_eval(0)
-    # eval-at-reset re-randomized the env; restore a fresh training rollout.
-    obs = env.reset()
-    agent.reset()
-
     try:
+        # Pre-training evaluation at step=0 so plots start from the
+        # untrained-policy baseline (per assignment Figure 1 layout).
+        _log_eval(0)
+
         while step < cfg.num_train_steps:
             # reward-schedule: fire hooks that have come due
             while sched_idx < len(schedule) and schedule[sched_idx][0] <= step:
@@ -244,7 +243,7 @@ def train(agent,
 
             # evaluation
             if step % cfg.eval_frequency == 0:
-                _do_eval(step)
+                _log_eval(step)
 
             # checkpointing
             if (cfg.checkpoint_frequency > 0

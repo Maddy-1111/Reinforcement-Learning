@@ -4,4 +4,8 @@ __pycache__/
 *.kev
 .DS_Store
 .ipynb_checkpoints/
-logs/
+runs/
+runs_cosine/
+alpha/
+reward_scaling/
+pebble_runs/
