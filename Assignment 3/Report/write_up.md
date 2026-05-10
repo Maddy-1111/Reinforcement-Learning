@@ -124,4 +124,88 @@ We ran PEBBLE on θ ∈ {0, 90} for three preference-query budgets — fb ∈ {5
 Budget matters when the reward landscape has sharp structure (θ = 0). With a smoother / more forgiving reward (θ = 90), 500 queries already saturate.
 More total queries ≠ uniformly better learning curve. The fb = 2000 dip on θ = 90 shows that large per-session updates can briefly destabilise reward learning before the dataset is informative. A larger budget is best spent across more sessions, not by enlarging each session.
 
+# 2.3 Reacher
+
+All experiments use the dm_control `reacher-easy` task with three reward formulations: R_a (shaped: +1 in target, else −(‖x_goal − x_pos‖ + ‖action‖²)), R_b (sparse: +1 in target, 0 otherwise), R_c (−1/step until termination at goal with near-zero velocity; on T=1000 timeout, −20 penalty + arm-only soft-reset, target preserved). Each SAC-R_i is trained for 500 K env steps; at every 10 K-step eval tick, the policy is evaluated under all three reward functions. Reported numbers are over 5 seeds; confidence bands are 95 % over seeds.
+
+1. Implementation. SAC with squashed Gaussian actor (tanh), clipped double-Q, automated α (target entropy = −action_dim), 10 K random-action seed phase, hidden=256, batch=256, γ=0.99, Adam. The Reacher env is wrapped to switch between R_a/R_b/R_c by a single flag and to log all three reward variants per eval episode (so SAC-R_a's progress.csv contains R_a_mean, R_b_mean, R_c_mean simultaneously).
+
+2. Diagonal learning curves (SAC-R_i evaluated under R_i).
+
+![Q2.3.2 — diagonal](q2_diagonal.png)
+
+Final returns at 500 K steps (mean ± 95 % CI over 5 seeds):
+
+| reward | SAC-R_i \| R_i |
+|--------|----------------|
+| R_a | +951 ± 5 |
+| R_b | +864 ± 94 |
+| R_c | −778 ± 301 |
+
+R_b learns fastest in wall-clock terms — it converges to the ~+850 plateau within ~50 K steps with low cross-seed variance. R_a converges slightly more slowly but to a *higher* asymptote (+951, very tight band) because the dense distance + action-norm penalty keeps shaping the policy after R_b has saturated. R_c is dramatically slower and noisier: with returns dominated by the −1/step accumulation and only rare goal-terminations, the credit-assignment signal is sparse and exploration-driven — even after 500 K steps, the band spans ~±300 across seeds, indicating that some seeds have learned to terminate quickly while others have not. So: **R_a ≈ R_b ≫ R_c** in learning efficiency under their own reward, with R_a slightly outperforming R_b at convergence.
+
+3. (a) Final-policy behavior — bar chart over 500 episodes × 5 seeds (250 episodes per reward), each episode capped at 5 000 steps.
+
+![Q2.3.3(a) — final-policy behavior](q3a_bars.png)
+
+| policy | reach rate | steps_to_goal (mean ± CI) | steps_in_target (mean ± CI) |
+|--------|-----------|---------------------------|------------------------------|
+| SAC-R_a | 100 % | 57 ± 25 | 4484 ± 74 |
+| SAC-R_b | 100 % | 42 ± 18 | 4617 ± 66 |
+| SAC-R_c | 92 %  | 1417 ± 200 | 126 ± 21 |
+
+(b) Which formulation achieves the desired behavior best? **R_b** — fastest to reach (42 steps) and longest stay (4617/5000 = 92 % of episode). R_a is essentially equivalent (57 steps to reach, 4484 in target — within ~3 % of R_b on both metrics). R_c fails on both axes: it reaches in only 92 % of episodes, takes ~25× longer when it does reach, and dwells for only ~2.5 % of the episode budget. The cause is structural: R_c's training objective explicitly *terminates* the episode at the goal, so the policy is optimized to *arrive and terminate*, not to *arrive and dwell*. After the eval-time wrapper resets the arm (target preserved) and the agent re-approaches, the in-target dwelling that R_a/R_b agents naturally produce never arises — the R_c policy has no incentive to remain stationary at the target.
+
+(c) Cross-reward evaluation — three subplots, each showing one trained policy evaluated under all three reward functions.
+
+![Q2.3.3(c) — cross-reward eval](q3c_perrow.png)
+
+Final cross-reward matrix (SAC-R_i evaluated under R_j, mean ± CI over 5 seeds):
+
+| trained on \ eval under | R_a | R_b | R_c |
+|-------------------------|-----|-----|-----|
+| **R_a** | +951 ± 5 | **+976 ± 2** | −109 ± 77 |
+| **R_b** | +787 ± 150 | +864 ± 94 | −164 ± 94 |
+| **R_c** | +19 ± 294 | +223 ± 200 | −778 ± 301 |
+
+(c).i  *Per-row analysis.* SAC-R_a transfers cleanly to R_b (its R_b score +976 actually *exceeds* its own R_a training metric and beats SAC-R_b's R_b score) and partially to R_c (slightly negative — the policy doesn't terminate, so it accumulates the −1/step cost). SAC-R_b also transfers reasonably to R_a (+787) but with much higher variance (band ±150), reflecting that some seeds find R_b's sparse signal harder. SAC-R_c is the worst transferer: its policy is optimized to reach + terminate, so under R_a (which charges distance and action energy at every step including approach) it scores near zero, and under R_b it scores moderately (+223) only because brief in-target visits accumulate some +1 steps before termination.
+
+(c).ii  *Does SAC-R_j ever beat SAC-R_i at R_i?* **Yes** — SAC-R_a evaluated under R_b reaches **+976 ± 2**, which is ~13 % higher than SAC-R_b's own R_b score of +864 ± 94, and far tighter across seeds. This is a classical reward-shaping result: R_a is a *denser, better-aligned proxy* for the desired behavior than R_b itself. By providing per-step gradient information (negative distance, action penalty) instead of a binary indicator, R_a produces a policy that arrives faster and dwells more reliably — which is precisely what R_b measures (count of in-target steps). R_b's signal is non-zero only inside the target disk, so until the policy stumbles into the disk during exploration, it gets no learning signal at all; this explains the higher seed variance and the lower asymptote. The structural insight: **a well-shaped dense reward can outperform the original sparse reward at its own evaluation metric**, because shaping makes the optimization easier without changing the optimal policy under modest assumptions.
+
+(c).iii  *Overall rating of the three formulations.*
+
+| criterion | R_a | R_b | R_c |
+|-----------|-----|-----|-----|
+| ease of specification | medium (need to choose distance + action-norm scales, sign) | **easiest** (binary in-target indicator) | hardest (define termination, near-zero-velocity threshold, timeout penalty, soft-reset semantics) |
+| learning efficiency | **best** (fastest to high return, lowest variance) | good (fast but noisier across seeds) | poor (slow, high variance, some seeds never converge) |
+| achievement of desired behavior | excellent (4484/5000 in target) | excellent (4617/5000) | poor (126/5000) |
+
+**Recommendation: R_a** for any task where the reward designer can articulate a smooth distance + control-cost objective. It dominates on learning efficiency *and* generalizes best across evaluation metrics (best or near-best on every column of the cross-reward matrix). **R_b** is a strong fallback when only a sparse "goal indicator" is available — it's trivial to specify and produces good behavior, just with more seed variance. **R_c** is *not* recommended for reach-and-stay tasks: the termination-on-goal incentive is fundamentally misaligned with the desired dwelling behavior.
+
+## Bonus §3 Q3 — PEBBLE on Reacher
+
+We trained PEBBLE on Reacher with three simulated-teacher types — each labeling segment preferences using one of R_a, R_b, R_c as the ground-truth oracle reward. Hyperparameters: 500 K env steps, 9 K unsupervised pre-training steps, feedback budget = 1000 preference queries (50 sessions × 20 queries, every 20 K steps), segment length = 50, ensemble size = 2, reward-model epochs = 20 per session, disagreement-based query selection. We ran 4 seeds (1, 17, 18, 19) per teacher.
+
+![Bonus Q3 — PEBBLE on Reacher](bonus_q3_pebble.png)
+
+Final returns at 500 K (mean over seeds, evaluated under the same R_i used by the teacher):
+
+| teacher | PEBBLE final | SAC-GT final (same R_i) |
+|---------|--------------|--------------------------|
+| R_a | −135 ± 3 | +951 ± 5 |
+| R_b | +106 ± 57 | +864 ± 94 |
+| R_c | −965 ± 95 | −778 ± 301 |
+
+*Which teacher produces faster / better learning?* Within the PEBBLE-only comparison, **R_b** is clearly the strongest: it is the only teacher to drive the policy to a clearly positive final return (+106 vs −135 for R_a and −965 for R_c). R_a-PEBBLE plateaus near zero (the policy fails to escape a regime where the learned reward provides no useful gradient), and R_c-PEBBLE essentially matches the random-policy floor (−965 ≈ −1000 from the per-step −1 over the 1000-step horizon).
+
+*Why is R_b the most learnable teacher under preferences?* The teachers' label informativeness is determined by how well segment-return *differences* are captured by binary preferences:
+
+- **R_b** (sparse +1/0). A segment's true return is the count of in-target steps (0–50). When two segments differ — even one with 0 in-target and one with 5 in-target steps — the preference is correct and unambiguous, and the Bradley–Terry loss has a clean gradient. Once the policy occasionally enters the target, preference signal grows monotonically.
+- **R_a** (dense shaped). True returns are continuous real numbers, so any two segments are almost always comparable. *In principle* this gives the most information per query. *In practice* with a 1000-query budget and modest reward-MLP capacity (ensemble of 2, 256-hidden ×3-deep, 20 epochs/session), the reward model fails to fit the smooth shaping function from sparse preference data, and the policy ends up optimizing a poorly-fit reward. Larger budget / more capacity would likely close this gap (cf. the original PEBBLE paper's 4–10 K-query regime).
+- **R_c** (constant −1 until termination). Almost all segment pairs from an early policy have identical true return (−50 each), so preferences are 50/50 noise — the reward model cannot distinguish "good" segments from "bad" segments until the policy occasionally terminates, which never happens in our run.
+
+*Versus SAC ground-truth.* With the chosen budget, no teacher matches SAC-GT — the gap is largest for R_a (+951 → −135) where the dense-reward optimization gives SAC the biggest advantage. The R_c gap is narrowest in absolute terms (−778 vs −965) only because SAC-R_c itself is poor.
+
+*Takeaway.* Preference-based reward learning on Reacher is feasible — the R_b-PEBBLE curve does rise and converge — but with the standard 1000-query budget it does not match SAC-GT on this task. The teacher whose ground-truth reward has the best signal-to-noise ratio under binary segment comparisons (R_b's count-of-in-target-steps) yields the most learnable preferences; teachers with continuous-but-fine-grained signals (R_a) need a larger query budget; teachers whose labels are ambiguous for almost-all early-policy segments (R_c) cannot bootstrap.
+
 
