@@ -86,36 +86,63 @@ python pendulum/plot.py --reward-scale-sweep --theta 90 --manual-alpha 0.2 \\
 
 ### §2.2 LunarLander
 
-Q2.2.1–2 — continuous vanilla:
-```
-python lunarlander/train_continuous.py --seed 1 --num-train-steps 500000
+> All commands are run from the `Assignment 3/` directory.
+> `--out-dir lunarlander/runs` keeps results co-located with the scripts and
+> matches what `plot.py --runs-dir lunarlander/runs` expects.
+
+Q2.2.1–2 — continuous SAC with auto temperature:
+```bash
+# 15-seed sweep
+for seed in $(seq 1 15); do
+    python lunarlander/train_continuous.py \
+        --seed $seed --num-train-steps 500000 \
+        --out-dir lunarlander/runs
+done
+
+python lunarlander/plot.py --mode continuous \
+    --runs-dir lunarlander/runs \
+    --seeds $(seq -s' ' 1 15) --out lander_continuous.png
 ```
 
 Q2.2.3 — hover-box reward swap (+200 → −100 at step 250K):
-```
+```bash
 # version (i): manual alpha = 0.01
-python lunarlander/train_continuous.py --alpha-mode manual --alpha 0.01 \\
-    --hover-bonus 200 --swap-bonus-at-step 250000 --swap-bonus-to -100 \\
-    --num-train-steps 500000 --seed 1
+for seed in $(seq 1 15); do
+    python lunarlander/train_continuous.py --alpha-mode manual --alpha 0.01 \
+        --hover-bonus 200 --swap-bonus-at-step 250000 --swap-bonus-to -100 \
+        --num-train-steps 500000 --seed $seed --out-dir lunarlander/runs
+done
+
 # version (ii): auto alpha
-python lunarlander/train_continuous.py --alpha-mode auto \\
-    --hover-bonus 200 --swap-bonus-at-step 250000 --swap-bonus-to -100 \\
-    --num-train-steps 500000 --seed 1
-python lunarlander/plot.py --mode hover --runs-dir lunarlander/runs \\
-    --swap-step 250000 --seeds 1 --out lander_hover.png
+for seed in $(seq 1 15); do
+    python lunarlander/train_continuous.py --alpha-mode auto \
+        --hover-bonus 200 --swap-bonus-at-step 250000 --swap-bonus-to -100 \
+        --num-train-steps 500000 --seed $seed --out-dir lunarlander/runs
+done
+
+python lunarlander/plot.py --mode hover --runs-dir lunarlander/runs \
+    --swap-step 250000 --seeds $(seq -s' ' 1 15) --out lander_hover.png
 ```
 
 Q2.2.4(b) — discrete-SAC:
-```
-python lunarlander/train_discrete.py --seed 1 --num-train-steps 500000
+```bash
+for seed in $(seq 1 15); do
+    python lunarlander/train_discrete.py \
+        --seed $seed --num-train-steps 500000 \
+        --out-dir lunarlander/runs
+done
 ```
 
-Q2.2.4(c) — DQN vs discrete-SAC: plug the PA2 DQN into
-`lunarlander/train_dqn.py` (see that file's note), write `progress.csv` in
-the same schema, then:
-```
-python lunarlander/plot.py --mode discrete-vs-dqn --runs-dir lunarlander/runs \\
-    --seeds 1 --out lander_discrete_vs_dqn.png
+Q2.2.4(c) — DQN (Double-DQN with 256×2 MLP, matching SAC architecture):
+```bash
+for seed in $(seq 1 15); do
+    python lunarlander/train_dqn.py \
+        --seed $seed --num-train-steps 500000 \
+        --out-dir lunarlander/runs
+done
+
+python lunarlander/plot.py --mode discrete-vs-dqn --runs-dir lunarlander/runs \
+    --seeds $(seq -s' ' 1 15) --out lander_discrete_vs_dqn.png
 ```
 
 ### §2.3 Reacher
